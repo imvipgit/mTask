@@ -198,7 +198,12 @@ struct GoogleSyncView: View {
                         }
                     }
                     .buttonStyle(ModernButtonStyle(isSecondary: true))
-                    .disabled(case .syncing = syncEngine.syncStatus)
+                    .disabled({
+                        if case .syncing = syncEngine.syncStatus {
+                            return true
+                        }
+                        return false
+                    }())
                 }
             }
             .cardStyle()
@@ -303,7 +308,7 @@ struct GoogleSyncView: View {
             case .success:
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(AppTheme.Colors.success)
-            case .error:
+            case .error(_):
                 Image(systemName: "exclamationmark.circle.fill")
                     .foregroundColor(AppTheme.Colors.error)
             }
@@ -332,7 +337,7 @@ struct GoogleSyncView: View {
             return AppTheme.Colors.primary
         case .success:
             return AppTheme.Colors.success
-        case .error:
+        case .error(_):
             return AppTheme.Colors.error
         }
     }

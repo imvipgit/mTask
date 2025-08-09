@@ -11,7 +11,7 @@ enum SyncStatus {
 
 // MARK: - Sync Statistics
 
-struct SyncStats {
+struct SyncStats: Equatable {
     let listsDownloaded: Int
     let listsUploaded: Int
     let tasksDownloaded: Int
@@ -26,7 +26,7 @@ struct SyncStats {
 
 final class SyncEngine: ObservableObject {
     static let shared = SyncEngine()
-    
+
     @Published var lastSync: Date? = nil
     @Published var syncStatus: SyncStatus = .idle
     @Published var lastSyncStats: SyncStats = .empty
