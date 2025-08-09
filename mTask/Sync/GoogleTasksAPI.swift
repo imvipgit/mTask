@@ -118,11 +118,11 @@ final class GoogleTasksAPI {
         try validateResponse(response)
         
         let decoder = JSONDecoder()
-        let dateFormatter = self.dateFormatter
+        let listTasksDateFormatter = self.dateFormatter
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
-            if let date = dateFormatter.date(from: dateString) {
+            if let date = listTasksDateFormatter.date(from: dateString) {
                 return date
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format")
@@ -214,11 +214,11 @@ final class GoogleTasksAPI {
         try validateResponse(response)
         
         let decoder = JSONDecoder()
-        let dateFormatter = self.dateFormatter
+        let tasksListDateFormatter = self.dateFormatter
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
-            if let date = dateFormatter.date(from: dateString) {
+            if let date = tasksListDateFormatter.date(from: dateString) {
                 return date
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format")
@@ -250,10 +250,10 @@ final class GoogleTasksAPI {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let encoder = JSONEncoder()
-        let dateFormatter = self.dateFormatter
+        let encoderDateFormatter = self.dateFormatter
         encoder.dateEncodingStrategy = .custom { date, encoder in
-            let container = encoder.singleValueContainer()
-            try container.encode(dateFormatter.string(from: date))
+            var container = encoder.singleValueContainer()
+            try container.encode(encoderDateFormatter.string(from: date))
         }
         request.httpBody = try encoder.encode(task)
         
@@ -261,11 +261,11 @@ final class GoogleTasksAPI {
         try validateResponse(response)
         
         let decoder = JSONDecoder()
-        let dateFormatter = self.dateFormatter
+        let decoderDateFormatter = self.dateFormatter
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
-            if let date = dateFormatter.date(from: dateString) {
+            if let date = decoderDateFormatter.date(from: dateString) {
                 return date
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format")
@@ -285,10 +285,10 @@ final class GoogleTasksAPI {
         }
         
         let encoder = JSONEncoder()
-        let dateFormatter = self.dateFormatter
+        let updateEncoderDateFormatter = self.dateFormatter
         encoder.dateEncodingStrategy = .custom { date, encoder in
-            let container = encoder.singleValueContainer()
-            try container.encode(dateFormatter.string(from: date))
+            var container = encoder.singleValueContainer()
+            try container.encode(updateEncoderDateFormatter.string(from: date))
         }
         request.httpBody = try encoder.encode(task)
         
@@ -296,10 +296,11 @@ final class GoogleTasksAPI {
         try validateResponse(response)
         
         let decoder = JSONDecoder()
+        let updateDecoderDateFormatter = self.dateFormatter
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
-            if let date = dateFormatter.date(from: dateString) {
+            if let date = updateDecoderDateFormatter.date(from: dateString) {
                 return date
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format")
@@ -332,11 +333,11 @@ final class GoogleTasksAPI {
         try validateResponse(response)
         
         let decoder = JSONDecoder()
-        let dateFormatter = self.dateFormatter
+        let moveDecoderDateFormatter = self.dateFormatter
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
-            if let date = dateFormatter.date(from: dateString) {
+            if let date = moveDecoderDateFormatter.date(from: dateString) {
                 return date
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format")
