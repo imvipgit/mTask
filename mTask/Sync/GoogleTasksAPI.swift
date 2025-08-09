@@ -86,7 +86,7 @@ final class GoogleTasksAPI {
     private let session = URLSession.shared
     private let dateFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        formatter.formatOptions = [.withInternetDateTime]
         return formatter
     }()
     

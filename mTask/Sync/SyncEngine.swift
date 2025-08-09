@@ -107,40 +107,22 @@ final class SyncEngine: ObservableObject {
     }
     
     private func performBidirectionalSync() async throws -> SyncStats {
-        var stats = SyncStats.empty
+        let token = try await auth.getAccessToken()
         
-        try await auth.withAccessToken { result in
-            switch result {
-            case .success(let token):
-                Task {
-                    // 1. Sync task lists
-                    let listStats = try await self.syncTaskLists(token: token)
-                    stats = SyncStats(
-                        listsDownloaded: listStats.listsDownloaded,
-                        listsUploaded: listStats.listsUploaded,
-                        tasksDownloaded: stats.tasksDownloaded,
-                        tasksUploaded: stats.tasksUploaded,
-                        conflicts: stats.conflicts,
-                        errors: stats.errors
-                    )
-                    
-                    // 2. Sync tasks for each list
-                    let taskStats = try await self.syncTasks(token: token)
-                    stats = SyncStats(
-                        listsDownloaded: stats.listsDownloaded,
-                        listsUploaded: stats.listsUploaded,
-                        tasksDownloaded: taskStats.tasksDownloaded,
-                        tasksUploaded: taskStats.tasksUploaded,
-                        conflicts: stats.conflicts + taskStats.conflicts,
-                        errors: stats.errors + taskStats.errors
-                    )
-                }
-            case .failure(let error):
-                throw error
-            }
-        }
+        // 1. Sync task lists
+        let listStats = try await syncTaskLists(token: token)
         
-        return stats
+        // 2. Sync tasks for each list
+        let taskStats = try await syncTasks(token: token)
+        
+        return SyncStats(
+            listsDownloaded: listStats.listsDownloaded,
+            listsUploaded: listStats.listsUploaded,
+            tasksDownloaded: taskStats.tasksDownloaded,
+            tasksUploaded: taskStats.tasksUploaded,
+            conflicts: listStats.conflicts + taskStats.conflicts,
+            errors: listStats.errors + taskStats.errors
+        )
     }
     
     // MARK: - Task Lists Sync
@@ -181,9 +163,8 @@ final class SyncEngine: ObservableObject {
                 let remoteList = remoteLists.first { $0.id == googleId }
                 if let remoteList = remoteList,
                    localList.title != remoteList.title,
-                   let updated = localList.updatedAt,
                    let remoteUpdated = remoteList.updated,
-                   updated > remoteUpdated {
+                   localList.updatedAt > remoteUpdated {
                     
                     _ = try await api.updateTaskList(
                         listId: googleId,

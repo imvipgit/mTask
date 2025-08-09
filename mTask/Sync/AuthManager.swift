@@ -199,10 +199,18 @@ final class AuthManager: ObservableObject {
         }
     }
     
+    func getAccessToken() async throws -> String {
+        return try await withCheckedThrowingContinuation { continuation in
+            withAccessToken { result in
+                continuation.resume(with: result)
+            }
+        }
+    }
+    
     // MARK: - Private Methods
     
     private func checkExistingAuth() {
-        if let _ = tokenStore.getAccessToken() {
+        if tokenStore.getAccessToken() != nil {
             if !tokenStore.isTokenExpired() {
                 isSignedIn = true
             } else {
