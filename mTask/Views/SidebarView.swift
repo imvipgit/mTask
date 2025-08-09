@@ -2,18 +2,26 @@ import SwiftUI
 
 struct SidebarView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var syncEngine: SyncEngine
     @State private var renamingListId: String? = nil
     @State private var newListTitle: String = ""
     @State private var hoveredListId: String? = nil
+    @State private var showingSyncView = false
 
     var body: some View {
         VStack(spacing: 0) {
             // Sidebar header
             HStack {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    Text("mTask")
-                        .font(AppTheme.Typography.title)
-                        .foregroundColor(AppTheme.Colors.primaryText)
+                    HStack {
+                        Text("mTask")
+                            .font(AppTheme.Typography.title)
+                            .foregroundColor(AppTheme.Colors.primaryText)
+                        
+                        // Google sync status indicator
+                        googleSyncStatusIndicator
+                    }
                     
                     Text("Task Management")
                         .font(AppTheme.Typography.caption)
@@ -22,15 +30,28 @@ struct SidebarView: View {
                 
                 Spacer()
                 
-                Button {
-                    store.addList()
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(AppTheme.Colors.primary)
+                HStack(spacing: AppTheme.Spacing.xs) {
+                    // Google sync button
+                    Button {
+                        showingSyncView = true
+                    } label: {
+                        Image(systemName: authManager.isSignedIn ? "icloud.fill" : "icloud")
+                            .font(.title3)
+                            .foregroundColor(authManager.isSignedIn ? AppTheme.Colors.primary : AppTheme.Colors.secondaryText)
+                    }
+                    .buttonStyle(IconButtonStyle())
+                    .help(authManager.isSignedIn ? "Google sync settings" : "Sign in to Google")
+                    
+                    Button {
+                        store.addList()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(AppTheme.Colors.primary)
+                    }
+                    .buttonStyle(IconButtonStyle())
+                    .help("Add new list")
                 }
-                .buttonStyle(IconButtonStyle())
-                .help("Add new list")
             }
             .padding(AppTheme.Spacing.lg)
             .background(AppTheme.Colors.secondaryBackground)
@@ -82,6 +103,55 @@ struct SidebarView: View {
             }
         }
         .background(AppTheme.Colors.background)
+        .sheet(isPresented: $showingSyncView) {
+            GoogleSyncView()
+                .environmentObject(authManager)
+                .environmentObject(syncEngine)
+        }
+    }
+    
+    // MARK: - Google Sync Status Indicator
+    private var googleSyncStatusIndicator: some View {
+        Group {
+            if authManager.isSignedIn {
+                switch syncEngine.syncStatus {
+                case .idle:
+                    EmptyView()
+                case .syncing:
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        ProgressView()
+                            .scaleEffect(0.6)
+                        Text("Syncing")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(AppTheme.Colors.primary)
+                    }
+                case .success:
+                    HStack(spacing: AppTheme.Spacing.xs) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(AppTheme.Colors.success)
+                        Text("Synced")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(AppTheme.Colors.success)
+                    }
+                case .error(let message):
+                    Button {
+                        showingSyncView = true
+                    } label: {
+                        HStack(spacing: AppTheme.Spacing.xs) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .font(.caption)
+                                .foregroundColor(AppTheme.Colors.error)
+                            Text("Error")
+                                .font(AppTheme.Typography.caption)
+                                .foregroundColor(AppTheme.Colors.error)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .help("Sync error: \(message)")
+                }
+            }
+        }
     }
     
     // MARK: - List Row View
